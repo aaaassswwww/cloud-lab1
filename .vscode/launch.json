@@ -1,0 +1,68 @@
+{
+    "configurations": [
+        {
+            "name": "cart",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/app/cart",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "checkout",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/app/checkout",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "frontend",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/app/frontend",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "payment",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/app/payment",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "product",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/app/product",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "user",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/app/user",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "order",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/app/order",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "email",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/app/email",
+            "console": "integratedTerminal"
+        }
+    ]
+}

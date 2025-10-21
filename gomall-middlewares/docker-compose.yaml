@@ -1,0 +1,39 @@
+version: "3"
+services:
+  consul:
+    container_name: gomall-consul
+    image: "consul:1.15.4"
+    ports:
+      - "8500:8500"
+    networks:
+      - gomall
+  mysql:
+    container_name: gomall-mysql
+    image: "mysql:latest"
+    ports:
+      - 13306:3306 # change port to 13066, in case you already have a MySQL running on your machine
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    volumes:
+      - ./db/sql/ini:/docker-entrypoint-initdb.d
+    networks:
+      - gomall
+  redis:
+    container_name: gomall-redis
+    image: "redis:latest"
+    ports:
+      - 16379:6379 # change port to 16379, in case you already have a Redis running on your machine
+    networks:
+      - gomall
+  nats:
+    container_name: gomall-nats
+    image: nats:latest
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    networks:
+      - gomall
+
+networks:
+  gomall:
+    external: true
