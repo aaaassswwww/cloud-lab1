@@ -14,12 +14,6 @@
 
 package model
 
-import (
-	"context"
-	"errors"
-
-	"gorm.io/gorm"
-)
 
 type OrderItem struct {
 	Base
@@ -33,17 +27,17 @@ func (oi OrderItem) TableName() string {
 	return "order_item"
 }
 
-func AddOrderItem(db *gorm.DB, ctx context.Context, item *OrderItem) error {
-	var find OrderItem
-	err := db.WithContext(ctx).Model(&OrderItem{}).Where(&OrderItem{
-		ProductId: item.ProductId,
-		OrderIdRefer: item.OrderIdRefer,
-		Quantity: item.Quantity,
-		Cost: item.Cost,
-	}).First(&find).Error
-	if err != nil && !errors.Is(err,gorm.ErrRecordNotFound) {
-		return err
-	}
-	err = db.WithContext(ctx).Model(&OrderItem{}).Create(item).Error
-	return err
-}
+// func AddOrderItem(db *gorm.DB, ctx context.Context, item *OrderItem) error {
+// 	var find OrderItem
+// 	err := db.WithContext(ctx).Model(&OrderItem{}).Where(&OrderItem{
+// 		ProductId: item.ProductId,
+// 		OrderIdRefer: item.OrderIdRefer,
+// 		Quantity: item.Quantity,
+// 		Cost: item.Cost,
+// 	}).First(&find).Error
+// 	if err != nil && !errors.Is(err,gorm.ErrRecordNotFound) {
+// 		return err
+// 	}
+// 	err = db.WithContext(ctx).Model(&OrderItem{}).Create(item).Error
+// 	return err
+// }

@@ -51,5 +51,20 @@ func ListOrder(db *gorm.DB, ctx context.Context, userId uint32) (orders []Order,
 
 func PlaceOrder(db *gorm.DB, ctx context.Context, order *Order) error {
 	err := db.WithContext(ctx).Model(&Order{}).Create(order).Error
+	// if err != nil {
+	// 	return nil
+	// }
+	// for _ , item := range order.OrderItems {
+	// 	if err = db.WithContext(ctx).Model(&OrderItem{}).Create(OrderItem{
+	// 		ProductId: item.ProductId,
+	// 		Quantity: item.Quantity,
+	// 		Cost: item.Cost,
+	// 		OrderIdRefer: order.OrderId,
+	// 	}).Error; err != nil {
+	// 		return err
+	// 	}
+	// }
+
 	return err
+
 }
