@@ -16,6 +16,7 @@ services:
       - MYSQL_ROOT_PASSWORD=root
     volumes:
       - ./db/sql/ini:/docker-entrypoint-initdb.d
+      - mysql-data:/var/lib/mysql
     networks:
       - gomall
   redis:
@@ -37,3 +38,6 @@ services:
 networks:
   gomall:
     external: true
+
+volumes:
+  mysql-data:
