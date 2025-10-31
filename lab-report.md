@@ -46,3 +46,33 @@ volumes:
            ↓
 新容器启动 → 自动挂载卷 → 数据恢复 
 ```
+
+
+
+# 3.3 Docker 微服务容器化
+## 构建微服务方法
+```bash
+# 注意在 cloud-lab1 目录下执行
+docker build --no-cache -f app/cart/Dockerfile -t gomall-cart:latest .
+docker build --no-cache -f app/checkout/Dockerfile -t gomall-checkout:latest .
+docker build --no-cache -f app/email/Dockerfile -t gomall-email:latest .
+docker build --no-cache -f app/frontend/Dockerfile -t gomall-frontend:latest . ## ？
+docker build --no-cache -f app/order/Dockerfile -t gomall-order:latest .     ## ？
+docker build --no-cache -f app/payment/Dockerfile -t gomall-payment:latest .
+docker build --no-cache -f app/product/Dockerfile -t gomall-product:latest .
+docker build --no-cache -f app/user/Dockerfile -t gomall-user:latest .
+```
+## 启动微服务方法
+```bash
+# 首先创建网络
+docker network create gomall-network
+# 然后启动所有微服务容器
+docker run -d --name cart --network gomall -p 8883:8883 gomall-cart:latest
+docker run -d --name checkout --network gomall -p 8884:8884 gomall-checkout:latest
+docker run -d --name email --network gomall -p 8885:8885 gomall-email:latest
+docker run -d --name frontend --network gomall -p 8080:8080 gomall-frontend:latest
+docker run -d --name order --network gomall -p 8886:8886 gomall-order:latest
+docker run -d --name payment --network gomall -p 8887:8887 gomall-payment:latest
+docker run -d --name product --network gomall -p 8888:8888 gomall-product:latest
+docker run -d --name user --network gomall -p 8889:8889 gomall-user:latest
+```
