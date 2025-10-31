@@ -19,6 +19,8 @@ import (
 
 	"github.com/cloudwego/biz-demo/gomall/app/frontend/biz/service"
 	"github.com/cloudwego/biz-demo/gomall/app/frontend/biz/utils"
+
+	// common "github.com/cloudwego/biz-demo/gomall/app/frontend/hertz_gen/frontend/common"
 	product "github.com/cloudwego/biz-demo/gomall/app/frontend/hertz_gen/frontend/product"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"

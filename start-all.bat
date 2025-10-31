@@ -3,6 +3,13 @@ echo ========================================
 echo Starting all microservices...
 echo ========================================
 
+REM Create network if not exists
+docker network create gomall 2>nul
+
+REM Remove old containers if they exist
+docker rm -f cart checkout email frontend order payment product user 2>nul
+
+REM Start all microservices
 echo Starting cart service...
 docker run -d --name cart --network gomall -p 8883:8883 gomall-cart:latest
 

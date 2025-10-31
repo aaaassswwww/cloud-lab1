@@ -56,8 +56,8 @@ volumes:
 docker build --no-cache -f app/cart/Dockerfile -t gomall-cart:latest .
 docker build --no-cache -f app/checkout/Dockerfile -t gomall-checkout:latest .
 docker build --no-cache -f app/email/Dockerfile -t gomall-email:latest .
-docker build --no-cache -f app/frontend/Dockerfile -t gomall-frontend:latest . ## ？
-docker build --no-cache -f app/order/Dockerfile -t gomall-order:latest .     ## ？
+docker build --no-cache -f app/frontend/Dockerfile -t gomall-frontend:latest . ## ？目前frontend的build.sh遇到了点问题
+docker build --no-cache -f app/order/Dockerfile -t gomall-order:latest .     ## ？同上问题
 docker build --no-cache -f app/payment/Dockerfile -t gomall-payment:latest .
 docker build --no-cache -f app/product/Dockerfile -t gomall-product:latest .
 docker build --no-cache -f app/user/Dockerfile -t gomall-user:latest .
