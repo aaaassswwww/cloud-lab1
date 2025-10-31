@@ -21,9 +21,10 @@ import (
 	"github.com/cloudwego/biz-demo/gomall/app/order/biz/dal/mysql"
 	"github.com/cloudwego/biz-demo/gomall/app/order/biz/model"
 	order "github.com/cloudwego/biz-demo/gomall/rpc_gen/kitex_gen/order"
+
 	// "github.com/cloudwego/kitex/pkg/klog"
 	"github.com/google/uuid"
-	// "gorm.io/gorm"
+	"gorm.io/gorm"
 )
 
 type PlaceOrderService struct {
@@ -38,37 +39,47 @@ func (s *PlaceOrderService) Run(req *order.PlaceOrderReq) (resp *order.PlaceOrde
 	// TODO 请实现PlaceOrder的业务逻辑，插入数据到数据库中的order表和order_item表，生成一个随机的uuid作为订单号
 	// 可以参考其他服务的源代码实现这个函数
 
-	var items []model.OrderItem
 	orderId := uuid.NewString()
-	
-	for _ , v := range req.OrderItems {
-		var item model.OrderItem
-		item = model.OrderItem{
-			ProductId: v.Item.ProductId,
-			Cost: v.Cost,
-			Quantity: v.Item.Quantity,
-			OrderIdRefer: orderId,
-		}
-		error := model.AddOrderItem(mysql.DB, s.ctx, &item)
-		if error != nil {
-			return &order.PlaceOrderResp{}, error
-		}
-		items = append(items, item)
-	}
 
-	error := model.PlaceOrder(mysql.DB, s.ctx, &model.Order{
-		OrderId: orderId,
-		UserId: req.UserId,
-		UserCurrency: req.UserCurrency,
-		Consignee: model.Consignee{
-			Email: req.Email,
-			StreetAddress: req.Address.StreetAddress,
-			City: req.Address.City,
-			Country: req.Address.Country,
-			ZipCode: req.Address.ZipCode,
-		},	
-		OrderItems: items,
+	// 使用事务确保订单和订单项的原子性
+	err = mysql.DB.Transaction(func(tx *gorm.DB) error {
+		// 先创建订单
+		newOrder := &model.Order{
+			OrderId:      orderId,
+			UserId:       req.UserId,
+			UserCurrency: req.UserCurrency,
+			Consignee: model.Consignee{
+				Email:         req.Email,
+				StreetAddress: req.Address.StreetAddress,
+				City:          req.Address.City,
+				Country:       req.Address.Country,
+				ZipCode:       req.Address.ZipCode,
+			},
+		}
+
+		if err := tx.WithContext(s.ctx).Create(newOrder).Error; err != nil {
+			return err
+		}
+
+		// 再创建订单项
+		for _, v := range req.OrderItems {
+			item := &model.OrderItem{
+				ProductId:    v.Item.ProductId,
+				Cost:         v.Cost,
+				Quantity:     v.Item.Quantity,
+				OrderIdRefer: orderId,
+			}
+			if err := tx.WithContext(s.ctx).Create(item).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
 	})
+
+	if err != nil {
+		return &order.PlaceOrderResp{}, err
+	}
 
 	resp = &order.PlaceOrderResp{
 		Order: &order.OrderResult{
@@ -76,5 +87,5 @@ func (s *PlaceOrderService) Run(req *order.PlaceOrderReq) (resp *order.PlaceOrde
 		},
 	}
 
-	return resp, error
+	return resp, nil
 }

@@ -28,6 +28,7 @@ import (
 	"github.com/cloudwego/biz-demo/gomall/rpc_gen/kitex_gen/order"
 	"github.com/cloudwego/biz-demo/gomall/rpc_gen/kitex_gen/payment"
 	"github.com/cloudwego/biz-demo/gomall/rpc_gen/kitex_gen/product"
+
 	// "github.com/cloudwego/kitex/pkg/klog"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
@@ -53,16 +54,30 @@ func NewCheckoutService(ctx context.Context) *CheckoutService {
 */
 func (s *CheckoutService) Run(req *checkout.CheckoutReq) (resp *checkout.CheckoutResp, err error) {
 	// TODO 1.get cart (使用RPC调用Cart服务以获得购物车信息)
-	cartResp, _ := rpc.CartClient.GetCart(s.ctx, &cart.GetCartReq{UserId: req.UserId})
-
+	cartResp, err := rpc.CartClient.GetCart(s.ctx, &cart.GetCartReq{UserId: req.UserId})
+	if err != nil {
+		return nil, err
+	}
+	if cartResp == nil || cartResp.Cart == nil || len(cartResp.Cart.Items) == 0 {
+		return &checkout.CheckoutResp{
+			OrderId:       "",
+			TransactionId: "",
+		}, nil
+	}
 
 	// TODO 2.calc cart（根据第1步的购物车信息，计算总价和订单项信息）
 	var total float64
 	var orderItems []*order.OrderItem
 
-	for _,cartItem := range cartResp.Cart.Items {
-		productResp, _ := rpc.ProductClient.GetProduct(s.ctx, &product.GetProductReq{Id:cartItem.ProductId})
-		cost := productResp.Product.Price * float32(cartItem.Quantity);
+	for _, cartItem := range cartResp.Cart.Items {
+		productResp, err := rpc.ProductClient.GetProduct(s.ctx, &product.GetProductReq{Id: cartItem.ProductId})
+		if err != nil {
+			return nil, err
+		}
+		if productResp == nil || productResp.Product == nil {
+			continue
+		}
+		cost := productResp.Product.Price * float32(cartItem.Quantity)
 		total += float64(cost)
 		orderItems = append(orderItems, &order.OrderItem{
 			Item: cartItem,
@@ -71,30 +86,42 @@ func (s *CheckoutService) Run(req *checkout.CheckoutReq) (resp *checkout.Checkou
 	}
 
 	// TODO 3.create order（根据第1步和第2步的信息，创建order.PlaceOrderReq，并使用RPC调用Order服务创建订单）
-	orderResp, _ := rpc.OrderClient.PlaceOrder(s.ctx, &order.PlaceOrderReq{
-		UserId: req.UserId,
+	orderResp, err := rpc.OrderClient.PlaceOrder(s.ctx, &order.PlaceOrderReq{
+		UserId:       req.UserId,
 		UserCurrency: "dollar",
 		Address: &order.Address{
 			StreetAddress: req.Address.StreetAddress,
-			City: req.Address.City,
-			State: req.Address.State,
-			Country: req.Address.Country,
-			ZipCode: 10002,
+			City:          req.Address.City,
+			State:         req.Address.State,
+			Country:       req.Address.Country,
+			ZipCode:       10002,
 		},
-		Email: req.Email,
+		Email:      req.Email,
 		OrderItems: orderItems,
 	})
+	if err != nil {
+		return nil, err
+	}
+	if orderResp == nil || orderResp.Order == nil {
+		return nil, err
+	}
 
 	// TODO 4.empty cart（使用RPC调用Cart服务清空购物车）
-	rpc.CartClient.EmptyCart(s.ctx, &cart.EmptyCartReq{UserId: req.UserId})
+	_, err = rpc.CartClient.EmptyCart(s.ctx, &cart.EmptyCartReq{UserId: req.UserId})
+	if err != nil {
+		return nil, err
+	}
 
 	// TODO 5.pay（使用RPC调用Payment服务进行支付）
-	rpc.PaymentClient.Charge(s.ctx, &payment.ChargeReq{
-		Amount: float32(total),
+	paymentResp, err := rpc.PaymentClient.Charge(s.ctx, &payment.ChargeReq{
+		Amount:     float32(total),
 		CreditCard: req.CreditCard,
-		OrderId: orderResp.Order.OrderId,
-		UserId: req.UserId,
-	})	
+		OrderId:    orderResp.Order.OrderId,
+		UserId:     req.UserId,
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	// TODO 6.send email（使用MQ发送邮件通知）
 	data, _ := proto.Marshal(&email.EmailReq{
@@ -109,8 +136,8 @@ func (s *CheckoutService) Run(req *checkout.CheckoutReq) (resp *checkout.Checkou
 
 	// TODO 7.finish（返回订单ID和支付结果）
 	resp = &checkout.CheckoutResp{
-		OrderId:       "order_id",
-		TransactionId: "transaction_id",
+		OrderId:       orderResp.Order.OrderId,
+		TransactionId: paymentResp.TransactionId,
 	}
 	return
 }

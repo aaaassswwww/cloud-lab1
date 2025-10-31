@@ -56,23 +56,20 @@ volumes:
 docker build --no-cache -f app/cart/Dockerfile -t gomall-cart:latest .
 docker build --no-cache -f app/checkout/Dockerfile -t gomall-checkout:latest .
 docker build --no-cache -f app/email/Dockerfile -t gomall-email:latest .
-docker build --no-cache -f app/frontend/Dockerfile -t gomall-frontend:latest . ## ？目前frontend的build.sh遇到了点问题
-docker build --no-cache -f app/order/Dockerfile -t gomall-order:latest .     ## ？同上问题
+docker build --no-cache -f app/frontend/Dockerfile -t gomall-frontend:latest .
+docker build --no-cache -f app/order/Dockerfile -t gomall-order:latest .
 docker build --no-cache -f app/payment/Dockerfile -t gomall-payment:latest .
 docker build --no-cache -f app/product/Dockerfile -t gomall-product:latest .
 docker build --no-cache -f app/user/Dockerfile -t gomall-user:latest .
 ```
 ## 启动微服务方法
 ```bash
-# 首先创建网络
-docker network create gomall-network
-# 然后启动所有微服务容器
-docker run -d --name cart --network gomall -p 8883:8883 gomall-cart:latest
-docker run -d --name checkout --network gomall -p 8884:8884 gomall-checkout:latest
-docker run -d --name email --network gomall -p 8885:8885 gomall-email:latest
-docker run -d --name frontend --network gomall -p 8080:8080 gomall-frontend:latest
-docker run -d --name order --network gomall -p 8886:8886 gomall-order:latest
-docker run -d --name payment --network gomall -p 8887:8887 gomall-payment:latest
-docker run -d --name product --network gomall -p 8888:8888 gomall-product:latest
-docker run -d --name user --network gomall -p 8889:8889 gomall-user:latest
+docker run -d --name cart --network gomall -p 8883:8883 --env-file ./app/cart/.env gomall-cart:latest
+docker run -d --name checkout --network gomall -p 8884:8884 --env-file ./app/checkout/.env gomall-checkout:latest
+docker run -d --name email --network gomall -p 8885:8885 --env-file ./app/email/.env gomall-email:latest
+docker run -d --name frontend --network gomall -p 8080:8080 --env-file ./app/frontend/.env gomall-frontend:latest
+docker run -d --name order --network gomall -p 8886:8886 --env-file ./app/order/.env gomall-order:latest
+docker run -d --name payment --network gomall -p 8887:8887 --env-file ./app/payment/.env gomall-payment:latest
+docker run -d --name product --network gomall -p 8888:8888 --env-file ./app/product/.env gomall-product:latest
+docker run -d --name user --network gomall -p 8889:8889 --env-file ./app/user/.env gomall-user:latest
 ```
