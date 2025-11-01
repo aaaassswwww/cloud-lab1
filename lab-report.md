@@ -52,7 +52,6 @@ volumes:
 # 3.3 Docker 微服务容器化
 ## 构建微服务方法
 ```bash
-# 注意在 cloud-lab1 目录下执行
 docker build --no-cache -f app/cart/Dockerfile -t gomall-cart:latest .
 docker build --no-cache -f app/checkout/Dockerfile -t gomall-checkout:latest .
 docker build --no-cache -f app/email/Dockerfile -t gomall-email:latest .
@@ -73,3 +72,16 @@ docker run -d --name payment --network gomall -p 8887:8887 --env-file ./app/paym
 docker run -d --name product --network gomall -p 8888:8888 --env-file ./app/product/.env gomall-product:latest
 docker run -d --name user --network gomall -p 8889:8889 --env-file ./app/user/.env gomall-user:latest
 ```
+
+## Dockerfile设计
+
+下面对 `app/cart/Dockerfile` 的设计逻辑做一个清晰且简单的说明：
+
+- 核心思路：多阶段构建（multi-stage build）
+  - 构建阶段（builder）：
+    - 基于官方 `golang:1.21.13-bullseye` 镜像，设置工作目录并复制项目源码。
+    - 切换到服务目录 `/workspace/app/cart`，运行项目内的 `build.sh` 脚本完成编译，产出可执行文件和其它构建产物到 `output` 目录。
+  - 运行阶段（runtime）：
+    - 基于更小的运行时镜像 `debian:bullseye-slim`，只安装必要运行时依赖（例如 `ca-certificates`）。
+    - 将构建阶段生成的 `output` 整体复制到运行镜像的 `/app`，避免在运行镜像中包含源码或构建工具。
+    - 暴露服务端口 `8883`，并通过 `CMD ["bash", "bootstrap.sh"]` 启动服务（假定 `bootstrap.sh` 在 `output` 中并负责运行最终二进制或初始化工作）。
